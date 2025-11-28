@@ -366,7 +366,7 @@ timestamp,model,idea
 2025-03-13 12:36:40,ollama-llama3.2:latest,"Use the VIX Index to identify overbought/oversold conditions in the S&P 500 futures contract, then enter long or short positions based on diverging COT positioning data."
 2025-03-13 12:36:54,ollama-gemma:2b,Combine Stochastic Oscillator with Range-Based Volume Indicators:
 2025-03-13 12:37:10,ollama-llama3.2:latest,"A 'Dark Cloud' strategy that enters long positions during overnight candlestick pattern formation consisting of two consecutive 'hanging candles' with the second being 10% larger in size than the first, while the market is within a range-bound consolidation phase."
-2025-03-13 12:37:46,ollama-DeepSeek-R1:latest,"A unique trend-following strategy using Fibonacci retracement levels combined with volume spikes as confirmation signals, entering long/short at price reversals above/below these key points."
+2025-03-13 12:37:46,ollama-DeepSeek-R1:latest,"Trend-following strategy using Fibonacci retracement levels combined with volume spikes as confirmation signals, entering long/short at price reversals above/below these key points."
 2025-03-13 12:38:00,ollama-gemma:2b,Trend-following strategy using Fibonacci Retracements and Stochastic Oscillators.
 2025-03-13 12:38:17,ollama-llama3.2:latest,"Buy long-term positions (14+ days) when the difference between short-term Bollinger Bands (20 periods) and long-term RSI (14 periods) is widening by more than 20% while VIX is below 18, with stop-loss at 2 standard deviations from price."
 2025-03-13 12:38:32,ollama-llama3.2:latest,"A mean-reversion strategy that enters when Bollinger Band Upper Bands are breached during late-day sessions, with exits based on price closing above/below the upper/lower bands."

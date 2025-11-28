@@ -8,7 +8,14 @@ import sys
 from datetime import datetime
 from pathlib import Path
 import pandas as pd
-from termcolor import cprint
+
+# Try to import termcolor for colored output, fallback to regular print
+try:
+    from termcolor import cprint
+except ImportError:
+    # Fallback if termcolor is not installed
+    def cprint(text, color=None):
+        print(text)
 
 class BaseAgent:
     def __init__(self, agent_type, use_exchange_manager=False):

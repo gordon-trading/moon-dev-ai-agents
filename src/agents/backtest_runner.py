@@ -11,12 +11,21 @@ from datetime import datetime
 from pathlib import Path
 
 # CONFIGURATION - Change this to test different files
-BACKTEST_FILE = "/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/agents/test_backtest_working.py"
+# Use relative path from project root, or absolute path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+BACKTEST_FILE = str(PROJECT_ROOT / "src" / "agents" / "test_backtest_working.py")  # Default to relative path
+# Alternative: Use absolute path if needed
+# BACKTEST_FILE = "/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/agents/test_backtest_working.py"
 CONDA_ENV = "tflow"  # Your conda environment name
 
-def run_backtest_in_conda(file_path: str, conda_env: str = "tflow"):
+def run_backtest_in_conda(file_path: str, conda_env: str = "tflow", use_venv: bool = False):
     """
-    Run a backtest file in a conda environment and capture all output
+    Run a backtest file in a conda environment or venv and capture all output
+    
+    Args:
+        file_path: Path to the Python backtest file
+        conda_env: Conda environment name (if use_venv=False)
+        use_venv: If True, use venv/bin/python instead of conda
     
     Returns dict with:
     - stdout: Standard output (results, prints)
@@ -27,20 +36,56 @@ def run_backtest_in_conda(file_path: str, conda_env: str = "tflow"):
     
     print(f"\n🚀 Moon Dev's Backtest Runner Starting!")
     print(f"📂 File: {file_path}")
-    print(f"🐍 Conda env: {conda_env}")
+    if use_venv:
+        print(f"🐍 Using venv")
+    else:
+        print(f"🐍 Conda env: {conda_env}")
     print("=" * 60)
     
     if not os.path.exists(file_path):
         return {
             "error": f"File not found: {file_path}",
-            "success": False
+            "success": False,
+            "stderr": f"File not found: {file_path}",
+            "stdout": "",
+            "return_code": 1
         }
     
-    # Build the command to run in conda environment
-    cmd = [
-        "conda", "run", "-n", conda_env,
-        "python", file_path
-    ]
+    # Build the command - use venv if specified, otherwise conda
+    if use_venv:
+        venv_python = PROJECT_ROOT / "venv" / "bin" / "python"
+        if not venv_python.exists():
+            return {
+                "error": f"Venv not found at {venv_python}",
+                "success": False,
+                "stderr": f"Venv not found. Run: python -m venv venv",
+                "stdout": "",
+                "return_code": 1
+            }
+        cmd = [str(venv_python), file_path]
+    else:
+        # Check if conda is available
+        try:
+            subprocess.run(["conda", "--version"], capture_output=True, check=True, timeout=5)
+        except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.CalledProcessError):
+            print("⚠️  Conda not found, trying venv instead...")
+            venv_python = PROJECT_ROOT / "venv" / "bin" / "python"
+            if venv_python.exists():
+                cmd = [str(venv_python), file_path]
+                use_venv = True
+            else:
+                return {
+                    "error": "Neither conda nor venv found",
+                    "success": False,
+                    "stderr": "Neither conda nor venv/bin/python found. Please install conda or create venv.",
+                    "stdout": "",
+                    "return_code": 1
+                }
+        else:
+            cmd = [
+                "conda", "run", "-n", conda_env,
+                "python", file_path
+            ]
     
     print(f"🔧 Command: {' '.join(cmd)}")
     print("=" * 60)
@@ -111,29 +156,51 @@ def parse_backtest_output(output: dict):
     """
     if not output.get('success'):
         # Parse error information
+        stderr = output.get('stderr', '')
+        stdout = output.get('stdout', '')
+        return_code = output.get('return_code', -1)
+        
+        # Determine if there's actually an error vs just non-zero return code
+        has_actual_error = bool(stderr.strip()) or 'Traceback' in stderr or 'Error' in stderr or 'Exception' in stderr
+        
         error_info = {
-            "has_error": True,
+            "has_error": has_actual_error,
             "error_type": None,
-            "error_message": output.get('stderr', ''),
-            "error_line": None
+            "error_message": stderr if stderr.strip() else (f"Process exited with code {return_code}" if return_code != 0 else ""),
+            "error_line": None,
+            "return_code": return_code
         }
         
         # Try to extract error details from stderr
-        stderr = output.get('stderr', '')
-        if 'Traceback' in stderr:
+        if stderr and 'Traceback' in stderr:
             lines = stderr.split('\n')
             for i, line in enumerate(lines):
                 if 'File' in line and '.py' in line:
                     # Extract file and line number
                     if 'line' in line:
                         try:
-                            error_info['error_line'] = int(line.split('line ')[1].split(',')[0])
-                        except:
+                            # Handle formats like "File \"path\", line 123" or "line 123,"
+                            parts = line.split('line ')
+                            if len(parts) > 1:
+                                line_num_str = parts[1].split(',')[0].split()[0]
+                                error_info['error_line'] = int(line_num_str)
+                        except (ValueError, IndexError):
                             pass
                             
-                if line.strip() and not line.startswith(' ') and i > 0:
+                # Find error type (usually the last non-indented line before empty line)
+                if line.strip() and not line.startswith(' ') and not line.startswith('File') and i > 0:
                     # This is likely the error type
-                    error_info['error_type'] = line.split(':')[0].strip()
+                    if ':' in line:
+                        error_info['error_type'] = line.split(':')[0].strip()
+                    else:
+                        error_info['error_type'] = line.strip()
+        
+        # If no traceback but stderr has content, try to extract error from first line
+        elif stderr.strip() and not error_info['error_type']:
+            first_line = stderr.strip().split('\n')[0]
+            if ':' in first_line:
+                error_info['error_type'] = first_line.split(':')[0].strip()
+            error_info['error_message'] = stderr.strip()
                     
         return error_info
     else:
@@ -175,10 +242,25 @@ def main():
     print("🌙 Moon Dev's Backtest Execution Proof of Concept")
     print("=" * 60)
     print(f"🎯 Target file: {BACKTEST_FILE}")
+    
+    # Check if file exists
+    if not os.path.exists(BACKTEST_FILE):
+        print(f"❌ File not found: {BACKTEST_FILE}")
+        print(f"💡 Looking for test file in: {PROJECT_ROOT / 'src' / 'agents'}")
+        # Try to find any Python file in agents directory
+        agents_dir = PROJECT_ROOT / "src" / "agents"
+        if agents_dir.exists():
+            py_files = list(agents_dir.glob("*.py"))
+            if py_files:
+                print(f"📋 Found Python files:")
+                for f in py_files[:5]:  # Show first 5
+                    print(f"   - {f.name}")
+        return None
+    
     print(f"🐍 Using conda env: {CONDA_ENV}")
     print("=" * 60)
     
-    # Run the backtest
+    # Run the backtest (will auto-fallback to venv if conda not available)
     result = run_backtest_in_conda(BACKTEST_FILE, CONDA_ENV)
     
     # Parse the results
@@ -195,11 +277,22 @@ def main():
         print("✅ Backtest executed successfully!")
         print("📊 Check stdout for strategy statistics")
     else:
-        print("❌ Backtest failed with errors")
-        if parsed.get('error_type'):
-            print(f"🐛 Error type: {parsed['error_type']}")
+        if parsed.get('has_error'):
+            print("❌ Backtest failed with errors")
+            if parsed.get('error_type'):
+                print(f"🐛 Error type: {parsed['error_type']}")
             if parsed.get('error_line'):
                 print(f"📍 Error line: {parsed['error_line']}")
+            if parsed.get('error_message'):
+                print(f"💬 Error message: {parsed['error_message'][:200]}")  # First 200 chars
+        else:
+            print(f"⚠️  Process exited with code {parsed.get('return_code', 'unknown')} but no error detected")
+            print("💡 This might indicate:")
+            print("   - File not found")
+            print("   - Missing dependencies")
+            print("   - Environment issues")
+            if result.get('stderr'):
+                print(f"📋 stderr: {result['stderr'][:200]}")
     
     print("\n🚀 This proves we can:")
     print("1. ✅ Execute backtest code in conda environment")

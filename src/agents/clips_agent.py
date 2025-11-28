@@ -74,7 +74,15 @@ all of my videos you can use: https://www.dropbox.com/scl/fo/d0rjdyus9q3pok5nbmo
 import sys
 from pathlib import Path
 import os
-import moviepy.editor as mp
+
+# Get the project root directory and add it to Python path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Updated for moviepy 2.x - editor module no longer exists
+from moviepy import VideoFileClip, AudioFileClip, CompositeVideoClip
+import moviepy as mp  # Keep for backward compatibility if needed
 import time
 from termcolor import cprint
 from tqdm import tqdm
@@ -86,7 +94,6 @@ import re
 from src.models import model_factory
 import yt_dlp
 import openai
-from moviepy.editor import VideoFileClip, AudioFileClip, CompositeVideoClip
 
 # Add project root to Python path for imports
 project_root = str(Path(__file__).parent.parent.parent)
@@ -132,10 +139,10 @@ RAW TEXT ONLY. NO MARKDOWN. NO QUOTES. NO ANALYSIS. NO THINKING. JUST THE INTRO.
 """
 
 # Constants for directories
-INPUT_DIR = Path("/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/videos/raw_streams")
-OUTPUT_DIR = Path("/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/videos/finished_clips")
-TEMP_DIR = Path("/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/videos/temp")
-YOUTUBE_MATERIALS_DIR = Path("/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/videos/youtube_materials")
+INPUT_DIR = PROJECT_ROOT / "src" / "data" / "videos" / "raw_streams"
+OUTPUT_DIR = PROJECT_ROOT / "src" / "data" / "videos" / "finished_clips"
+TEMP_DIR = PROJECT_ROOT / "src" / "data" / "videos" / "temp"
+YOUTUBE_MATERIALS_DIR = PROJECT_ROOT / "src" / "data" / "videos" / "youtube_materials"
 
 class ClipsAgent:
     def __init__(self):
