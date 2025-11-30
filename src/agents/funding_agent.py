@@ -17,6 +17,7 @@ MODEL_OVERRIDE = "deepseek-chat"  # Set to "deepseek-chat" to use DeepSeek
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"  # Base URL for DeepSeek API
 
 import os
+import sys
 import pandas as pd
 import time
 from datetime import datetime, timedelta
@@ -25,14 +26,21 @@ from dotenv import load_dotenv
 import openai
 import anthropic
 from pathlib import Path
-from src import nice_funcs as n
-from src import nice_funcs_hyperliquid as hl
-from src.agents.api import MoonDevAPI
 from collections import deque
-from src.agents.base_agent import BaseAgent
 import traceback
 import numpy as np
 import re
+
+# Get the project root directory and add it to Python path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Now import from src module
+from src import nice_funcs as n
+from src import nice_funcs_hyperliquid as hl
+from src.agents.api import MoonDevAPI
+from src.agents.base_agent import BaseAgent
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent

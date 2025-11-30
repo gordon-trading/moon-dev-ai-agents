@@ -224,6 +224,7 @@ Agent Two: Fundamental/Macro Analysis Expert 🌍
 
 
 import os
+import sys
 import requests
 import pandas as pd
 import json
@@ -235,6 +236,11 @@ from termcolor import colored, cprint
 import anthropic
 from pathlib import Path
 import openai
+
+# Get the project root directory and add it to Python path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 # Local imports
 from src.config import *

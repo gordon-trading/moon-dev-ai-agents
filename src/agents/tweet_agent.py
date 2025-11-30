@@ -6,6 +6,7 @@ This agent takes text input and generates tweets based on the content.
 """
 
 import os
+import sys
 import pandas as pd
 import time
 from datetime import datetime
@@ -13,6 +14,7 @@ from pathlib import Path
 
 # 🌙 Moon Dev: Calculate project root dynamically (MUST be before OG_TWEET_FILE)
 PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 DATA_DIR = PROJECT_ROOT / "src" / "data"
 
 # Model override settings

@@ -20,22 +20,42 @@ Moves to position, executes code, and captures screenshot
 
 """
 
-import pyautogui
-import time
+import sys
+import os
 from pathlib import Path
 from termcolor import cprint
 from datetime import datetime
-import Quartz
-import sys
-import os
-from Quartz import CoreGraphics as CG
-import AppKit
+import time
 import subprocess
 import base64
-from src.models import model_factory  # Import Moon Dev's model factory
 import traceback
-from Cocoa import NSURL
-import time
+
+# Platform-specific imports
+import platform
+IS_MACOS = platform.system() == 'Darwin'
+
+if IS_MACOS:
+    try:
+        import pyautogui
+        import Quartz
+        from Quartz import CoreGraphics as CG
+        import AppKit
+        from Cocoa import NSURL
+    except ImportError as e:
+        cprint(f"❌ macOS-specific modules not available: {e}", "red")
+        cprint("💡 This script requires macOS and pyobjc frameworks", "yellow")
+        sys.exit(1)
+else:
+    cprint("⚠️  This script is macOS-specific and requires Quartz, AppKit, and Cocoa frameworks", "yellow")
+    cprint("💡 These frameworks are only available on macOS", "yellow")
+    sys.exit(1)
+
+# Add project root to Python path for imports
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.models import model_factory  # Import Moon Dev's model factory
 
 # Configuration - Moon Dev's target coordinates (DO NOT ADJUST THESE)
 CODE_EDITOR_X = -2686

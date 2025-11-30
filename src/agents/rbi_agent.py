@@ -343,6 +343,13 @@ import threading
 import itertools
 import sys
 import hashlib  # Added for idea hashing
+
+# Get the project root directory and add it to Python path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Now import from src module
 from src.config import *  # Import config settings including AI_MODEL
 from src.models import model_factory
 

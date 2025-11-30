@@ -6,6 +6,11 @@ Analyzes token launches and transactions to find the best opportunities!
 import os
 import sys
 from pathlib import Path
+
+# 🌙 Moon Dev: Calculate project root dynamically and add to Python path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
 import pandas as pd
 import time
 import requests
@@ -21,11 +26,6 @@ from src.nice_funcs import (
     token_creation_info,
     token_price
 )
-
-# Add src directory to Python path
-src_path = str(Path(__file__).parent.parent)
-if src_path not in sys.path:
-    sys.path.append(src_path)
 
 # Load environment variables
 load_dotenv()

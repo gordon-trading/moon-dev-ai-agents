@@ -51,13 +51,16 @@ import threading
 import shutil
 import textwrap
 
-# Import model factory from RBI agent
+# Get the project root directory and add it to Python path
 import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = Path(__file__).parent.parent.parent  # Points to project root
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Now import from src module
 from src.models import model_factory
 
 # Define paths
-PROJECT_ROOT = Path(__file__).parent.parent.parent  # Points to project root
 DATA_DIR = PROJECT_ROOT / "src" / "data" / "rbi_pp_multi"
 IDEAS_TXT = DATA_DIR / "ideas.txt"
 IDEAS_CSV = DATA_DIR / "strategy_ideas.csv"

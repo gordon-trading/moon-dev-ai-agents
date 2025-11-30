@@ -3,6 +3,13 @@
 Handles all strategy-based trading decisions
 """
 
+import sys
+from pathlib import Path
+
+# 🌙 Moon Dev: Calculate project root dynamically and add to Python path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
 from src.config import *
 import json
 from termcolor import cprint

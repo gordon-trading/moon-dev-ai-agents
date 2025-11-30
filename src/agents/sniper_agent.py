@@ -28,7 +28,17 @@ from pathlib import Path
 import logging
 from rich.console import Console
 from rich import print as rprint
-from playsound import playsound
+# Optional import for playsound (audio playback)
+try:
+    from playsound import playsound
+    PLAYSOUND_AVAILABLE = True
+except ImportError:
+    PLAYSOUND_AVAILABLE = False
+    print("⚠️  Warning: playsound not installed. Audio playback will be disabled.")
+    print("💡 Install with: pip install playsound")
+    # Create a dummy function
+    def playsound(file_path):
+        pass
 
 # Suppress INFO logs
 logging.getLogger().setLevel(logging.WARNING)

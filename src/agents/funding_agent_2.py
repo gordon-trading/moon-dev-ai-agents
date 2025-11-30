@@ -8,6 +8,7 @@ Need an API key? for a limited time, bootcamp members get free api keys for clau
 """
 
 import os
+import sys
 import pandas as pd
 import time
 import requests
@@ -16,11 +17,15 @@ from termcolor import colored, cprint
 from dotenv import load_dotenv
 import openai
 from pathlib import Path
-from src.agents.base_agent import BaseAgent
 import traceback
 
-# Get the project root directory
+# Get the project root directory and add it to Python path
 PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Now import from src module
+from src.agents.base_agent import BaseAgent
 
 # Configuration
 BASE_URL = 'https://api.hyperliquid.xyz/info'

@@ -15,6 +15,7 @@ MODEL_OVERRIDE = "deepseek-chat"  # Set to "0" to disable override
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"  # Base URL for DeepSeek API
 
 import os
+import sys
 import pandas as pd
 import time
 from datetime import datetime, timedelta
@@ -22,6 +23,11 @@ from termcolor import colored, cprint
 from dotenv import load_dotenv
 import openai
 from pathlib import Path
+
+# 🌙 Moon Dev: Calculate project root dynamically and add to Python path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
 from src import nice_funcs as n
 from src import nice_funcs_hyperliquid as hl  # Add import for hyperliquid functions
 from src.agents.api import MoonDevAPI
@@ -30,9 +36,6 @@ from src.agents.base_agent import BaseAgent
 import traceback
 import numpy as np
 import anthropic
-
-# Get the project root directory
-PROJECT_ROOT = Path(__file__).parent.parent.parent
 
 # Configuration
 CHECK_INTERVAL_MINUTES = 5  # How often to check OI (can be set to 0.5 for 30 seconds)

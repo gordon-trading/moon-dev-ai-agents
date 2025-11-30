@@ -102,6 +102,7 @@ For updates: https://github.com/moon-dev-ai-agents-for-trading
 """
 
 import os
+import sys
 import pandas as pd
 import json
 from typing import Dict, List
@@ -115,6 +116,13 @@ import requests
 import numpy as np
 import concurrent.futures
 import openai
+
+# Get the project root directory and add it to Python path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Now import from src module
 import src.config as config
 
 # Load environment variables

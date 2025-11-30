@@ -8,6 +8,7 @@ Need an API key? for a limited time, bootcamp members get free api keys for clau
 """
 
 import os
+import sys
 import time
 import traceback
 from datetime import datetime
@@ -19,6 +20,12 @@ from anthropic import Anthropic
 from dotenv import load_dotenv
 import openai
 
+# Get the project root directory and add it to Python path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Now import from src module
 from src.agents.base_agent import BaseAgent
 from src.nice_funcs_hyperliquid import get_funding_rates
 from src.config import AI_MODEL, AI_TEMPERATURE, AI_MAX_TOKENS

@@ -43,19 +43,27 @@ RESPECT_LIMIT: <detailed reason for each position>
 
 import anthropic
 import os
+import sys
 import pandas as pd
 import json
 from termcolor import colored, cprint
 from dotenv import load_dotenv
 import openai
-from src import config
-from src import nice_funcs as n
-from src.data.ohlcv_collector import collect_all_tokens
 from datetime import datetime, timedelta
 import time
+from pathlib import Path
+import traceback
+
+# Get the project root directory and add it to Python path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Now import from src module
+from src import nice_funcs as n
+from src.data.ohlcv_collector import collect_all_tokens
 from src.config import *
 from src.agents.base_agent import BaseAgent
-import traceback
 
 # Load environment variables
 load_dotenv()

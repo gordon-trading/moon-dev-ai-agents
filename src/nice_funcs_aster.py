@@ -21,39 +21,93 @@ QUANTITY CALCULATION:
 import os
 import sys
 import time
+from pathlib import Path
 from termcolor import cprint
 from dotenv import load_dotenv
 
-# Add Aster Dex Trading Bots to path
-aster_bots_path = '/Users/md/Dropbox/dev/github/Aster-Dex-Trading-Bots'
-if aster_bots_path not in sys.path:
-    sys.path.insert(0, aster_bots_path)
+# Load environment variables
+load_dotenv()
+
+# Try to find Aster Dex Trading Bots repository
+# Check multiple possible locations
+PROJECT_ROOT = Path(__file__).parent.parent
+possible_paths = [
+    os.getenv('ASTER_BOTS_PATH'),  # Environment variable override
+    PROJECT_ROOT.parent / 'Aster-Dex-Trading-Bots',  # Sibling directory
+    Path.home() / 'github' / 'Aster-Dex-Trading-Bots',  # Common Linux location
+    Path('/Users/md/Dropbox/dev/github/Aster-Dex-Trading-Bots'),  # Original macOS path
+]
+
+aster_bots_path = None
+for path in possible_paths:
+    if path and Path(path).exists():
+        aster_bots_path = str(path)
+        if aster_bots_path not in sys.path:
+            sys.path.insert(0, aster_bots_path)
+        break
 
 # Try importing Aster modules
+ASTER_AVAILABLE = False
 try:
     from aster_api import AsterAPI  # type: ignore
     from aster_funcs import AsterFuncs  # type: ignore
+    ASTER_AVAILABLE = True
 except ImportError as e:
-    cprint(f"❌ Failed to import Aster modules: {e}", "red")
-    cprint(f"Make sure Aster-Dex-Trading-Bots exists at: {aster_bots_path}", "yellow")
-    sys.exit(1)
-
-# Load environment variables
-load_dotenv()
+    cprint(f"⚠️  Warning: Failed to import Aster modules: {e}", "yellow")
+    if aster_bots_path:
+        cprint(f"   Aster-Dex-Trading-Bots found at: {aster_bots_path}", "yellow")
+    else:
+        cprint(f"   Aster-Dex-Trading-Bots repository not found.", "yellow")
+        cprint(f"   Searched in:", "yellow")
+        for path in possible_paths:
+            if path:
+                cprint(f"     - {path}", "yellow")
+    cprint(f"   Set ASTER_BOTS_PATH environment variable to specify custom location.", "yellow")
+    cprint(f"   Aster DEX functionality will be disabled.", "yellow")
+    # Create dummy classes to prevent errors
+    class AsterAPI:
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError("Aster API not available. Install Aster-Dex-Trading-Bots repository.")
+    class AsterFuncs:
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError("Aster Funcs not available. Install Aster-Dex-Trading-Bots repository.")
 
 # Get API keys
 ASTER_API_KEY = os.getenv('ASTER_API_KEY')
 ASTER_API_SECRET = os.getenv('ASTER_API_SECRET')
 
-# Verify API keys
-if not ASTER_API_KEY or not ASTER_API_SECRET:
-    cprint("❌ ASTER API keys not found in .env file!", "red")
-    cprint("Please add ASTER_API_KEY and ASTER_API_SECRET to your .env file", "yellow")
-    sys.exit(1)
+# Initialize API (global instance) only if Aster is available
+if ASTER_AVAILABLE:
+    # Verify API keys
+    if not ASTER_API_KEY or not ASTER_API_SECRET:
+        cprint("⚠️  Warning: ASTER API keys not found in .env file!", "yellow")
+        cprint("   Please add ASTER_API_KEY and ASTER_API_SECRET to your .env file", "yellow")
+        cprint("   Aster DEX functionality will be disabled.", "yellow")
+        ASTER_AVAILABLE = False
+    else:
+        try:
+            api = AsterAPI(ASTER_API_KEY, ASTER_API_SECRET)
+            funcs = AsterFuncs(api)
+        except Exception as e:
+            cprint(f"⚠️  Warning: Failed to initialize Aster API: {e}", "yellow")
+            cprint("   Aster DEX functionality will be disabled.", "yellow")
+            ASTER_AVAILABLE = False
+else:
+    api = None
+    funcs = None
 
-# Initialize API (global instance)
-api = AsterAPI(ASTER_API_KEY, ASTER_API_SECRET)
-funcs = AsterFuncs(api)
+# ============================================================================
+# HELPER FUNCTIONS
+# ============================================================================
+
+def _check_aster_available():
+    """Check if Aster API is available and raise helpful error if not"""
+    if not ASTER_AVAILABLE or api is None or funcs is None:
+        raise RuntimeError(
+            "Aster DEX functionality is not available. "
+            "Please install the Aster-Dex-Trading-Bots repository. "
+            "Set ASTER_BOTS_PATH environment variable to specify its location."
+        )
 
 # ============================================================================
 # CONFIGURATION
@@ -129,6 +183,7 @@ def token_price(address):
     Returns:
         float: Current price
     """
+    _check_aster_available()
     try:
         symbol = format_symbol(address)
         ask, bid, _ = api.get_ask_bid(symbol)
@@ -280,6 +335,7 @@ def get_position(token_mint_address):
                 'is_long': bool
             }
     """
+    _check_aster_available()
     try:
         symbol = format_symbol(token_mint_address)
         position = api.get_position(symbol)

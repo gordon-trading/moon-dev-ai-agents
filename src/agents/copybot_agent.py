@@ -12,6 +12,7 @@ Need an API key? for a limited time, bootcamp members get free api keys for clau
 """
 
 import os
+import sys
 import pandas as pd
 import anthropic
 from termcolor import colored, cprint
@@ -19,13 +20,17 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import time
 from pathlib import Path
+
+# 🌙 Moon Dev: Calculate paths dynamically and add to Python path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+GITHUB_DIR = PROJECT_ROOT.parent  # Parent folder containing all repos
+
+# Now import from src module
 from src.config import *
 from src import nice_funcs as n
 from src.data.ohlcv_collector import collect_all_tokens, collect_token_data
-
-# 🌙 Moon Dev: Calculate paths dynamically
-PROJECT_ROOT = Path(__file__).parent.parent.parent
-GITHUB_DIR = PROJECT_ROOT.parent  # Parent folder containing all repos
 
 # Data path for current copybot portfolio - 🌙 Moon Dev: External repo (sibling)
 COPYBOT_PORTFOLIO_PATH = GITHUB_DIR / "solana-copy-trader" / "csvs" / "current_portfolio.csv"

@@ -92,7 +92,21 @@ def patched_client(*args, **kwargs):
 httpx.Client = patched_client
 
 # imports 
-from twikit import Client, TooManyRequests, BadRequest
+# Optional import for twikit (Twitter API client)
+try:
+    from twikit import Client, TooManyRequests, BadRequest
+    TWIKIT_AVAILABLE = True
+except ImportError:
+    TWIKIT_AVAILABLE = False
+    cprint("⚠️  Warning: twikit not installed. Twitter functionality will be disabled.", "yellow")
+    cprint("💡 Install with: pip install twikit", "yellow")
+    # Create dummy classes for type hints
+    class Client:
+        pass
+    class TooManyRequests(Exception):
+        pass
+    class BadRequest(Exception):
+        pass
 
 class SentimentAgent:
     def __init__(self):

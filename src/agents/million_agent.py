@@ -6,9 +6,17 @@ Set up a knowledge base in the data folder called million_agent.
 """
 
 import os
+import sys
 from pathlib import Path
 import glob
 from termcolor import cprint
+
+# Get the project root directory and add it to Python path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Now import from src module
 from src.models import model_factory
 
 # Constants

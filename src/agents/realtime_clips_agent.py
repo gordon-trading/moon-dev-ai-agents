@@ -138,15 +138,26 @@ from pathlib import Path
 from datetime import datetime
 from termcolor import cprint
 import re
-import whisper
 import time
 import threading
 import webbrowser
 from urllib.parse import quote
 
-# Add project root to path for imports
-sys.path.append(str(Path(__file__).parent.parent.parent))
+# Get the project root directory and add it to Python path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
+# Optional import for whisper (speech recognition)
+try:
+    import whisper
+    WHISPER_AVAILABLE = True
+except ImportError:
+    WHISPER_AVAILABLE = False
+    cprint("⚠️  Warning: whisper not installed. Audio transcription will be disabled.", "yellow")
+    cprint("💡 Install with: pip install openai-whisper", "yellow")
+
+# Now import from src module
 from src.models.model_factory import model_factory
 
 # Setup paths relative to src/data/
@@ -155,9 +166,13 @@ DATA_DIR = PROJECT_ROOT / 'data' / CLIPS_BASE_FOLDER
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # Load Whisper model (runs locally, free!)
-cprint("🔧 Loading Whisper model (this only happens once)...", "cyan")
-whisper_model = whisper.load_model("base")  # Options: tiny, base, small, medium, large
-cprint("✅ Whisper model loaded!", "green")
+if WHISPER_AVAILABLE:
+    cprint("🔧 Loading Whisper model (this only happens once)...", "cyan")
+    whisper_model = whisper.load_model("base")  # Options: tiny, base, small, medium, large
+    cprint("✅ Whisper model loaded!", "green")
+else:
+    whisper_model = None
+    cprint("⚠️ Whisper not available - audio transcription disabled", "yellow")
 
 class RealtimeClipsAgent:
     """AI-powered real-time clip creator using Moon Dev's Model Factory"""
@@ -291,6 +306,10 @@ class RealtimeClipsAgent:
 
         try:
             # Transcribe using local Whisper model
+            if not WHISPER_AVAILABLE or whisper_model is None:
+                cprint("⚠️ Whisper not available - skipping audio transcription", "yellow")
+                return None
+            
             result = whisper_model.transcribe(
                 str(video_file),
                 verbose=False,

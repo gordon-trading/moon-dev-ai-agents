@@ -3,11 +3,31 @@
 A simple tool to find screen coordinates and test cursor movements
 """
 
-import pyautogui
+import sys
+import platform
 import time
 from termcolor import cprint
 import json
 from pathlib import Path
+
+# Platform check
+IS_MACOS = platform.system() == 'Darwin'
+
+if IS_MACOS:
+    try:
+        import pyautogui
+    except ImportError:
+        cprint("❌ pyautogui not installed. Install with: pip install pyautogui", "red")
+        sys.exit(1)
+else:
+    try:
+        import pyautogui
+    except ImportError:
+        cprint("⚠️  pyautogui not installed.", "yellow")
+        cprint("💡 On Linux, install with: pip install pyautogui", "yellow")
+        cprint("💡 Note: You may also need system packages like python-xlib, scrot, etc.", "yellow")
+        cprint("💡 If installation fails, try: pip install --no-build-isolation pyautogui", "yellow")
+        sys.exit(1)
 
 # Disable pyautogui's fail-safe (optional)
 

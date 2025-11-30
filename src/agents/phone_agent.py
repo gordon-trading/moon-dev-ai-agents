@@ -25,7 +25,14 @@ import numpy as np
 import wave
 import queue
 import threading
-import langdetect
+# Optional import for langdetect (language detection)
+try:
+    import langdetect
+    LANGDETECT_AVAILABLE = True
+except ImportError:
+    LANGDETECT_AVAILABLE = False
+    cprint("⚠️  Warning: langdetect not installed. Language detection will be disabled.", "yellow")
+    cprint("💡 Install with: pip install langdetect", "yellow")
 import subprocess
 import pandas as pd
 from datetime import datetime
@@ -577,7 +584,10 @@ Key guidelines:
                     
                     # Detect language
                     try:
-                        lang = langdetect.detect(transcript)
+                        if LANGDETECT_AVAILABLE:
+                            lang = langdetect.detect(transcript)
+                        else:
+                            lang = "en"  # Default to English if langdetect not available
                         if lang != 'en':
                             cprint("\n⚠️ Non-English input detected. Please speak in English.", "yellow")
                             await play_audio_response("I can only understand English. Please speak in English.")

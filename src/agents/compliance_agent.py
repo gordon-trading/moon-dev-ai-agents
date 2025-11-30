@@ -12,7 +12,6 @@ import cv2
 import time
 import json
 import shutil
-import whisper
 import numpy as np
 import base64
 from pathlib import Path
@@ -23,8 +22,19 @@ from datetime import datetime
 from typing import Dict, List, Tuple, Optional, Any
 import threading
 
-# Add parent directory to path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Optional import for whisper (speech recognition)
+try:
+    import whisper
+    WHISPER_AVAILABLE = True
+except ImportError:
+    WHISPER_AVAILABLE = False
+    cprint("⚠️  Warning: whisper not installed. Audio transcription will be disabled.", "yellow")
+    cprint("💡 Install with: pip install openai-whisper", "yellow")
+
+# Get the project root directory and add it to Python path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 # Import model factory
 from src.models import model_factory
@@ -149,7 +159,11 @@ class ComplianceAgent:
         if self._whisper_model is None:
             try:
                 cprint("🔊 Loading Whisper model for transcription...", "cyan")
-                self._whisper_model = whisper.load_model("base")
+                if WHISPER_AVAILABLE:
+                    self._whisper_model = whisper.load_model("base")
+                else:
+                    self._whisper_model = None
+                    cprint("⚠️  Whisper model not loaded - audio transcription disabled", "yellow")
                 cprint("✅ Whisper model loaded successfully!", "green")
             except Exception as e:
                 cprint(f"❌ Error loading Whisper model: {str(e)}", "red")
@@ -217,7 +231,7 @@ class ComplianceAgent:
             # Lazy-load the Whisper model
             self._lazy_load_whisper()
             
-            if self._whisper_model is None:
+            if not WHISPER_AVAILABLE or self._whisper_model is None:
                 return "Transcription not available - Whisper model failed to load."
             
             cprint(f"🎤 Transcribing audio from {video_path.name}...", "cyan")
